@@ -246,6 +246,9 @@ final class MeshService: NSObject, ObservableObject {
     private let browser: MCNearbyServiceBrowser
 
     private var decoder: JSONDecoder
+    private var lastPresenceLog: Date?
+    private var didLogNoPeers = false
+    private var loggedPresenceIDs = Set<UUID>()
 
     override init() {
         peerID = MCPeerID(displayName: UIDevice.current.name)
@@ -286,11 +289,25 @@ final class MeshService: NSObject, ObservableObject {
     }
 
     private func send<T: Codable>(messageType: MeshMessageType, payload: T, mode: MCSessionSendDataMode) {
-        guard !session.connectedPeers.isEmpty else { return }
+        guard !session.connectedPeers.isEmpty else {
+            if !didLogNoPeers {
+                didLogNoPeers = true
+                gtLog("Mesh", "skip \(messageType.rawValue): no connected peers")
+            }
+            return
+        }
+        didLogNoPeers = false
         do {
             let envelope = Envelope(type: messageType.rawValue, payload: payload)
             let data = try JSONEncoder.withIso8601.encode(envelope)
             try session.send(data, toPeers: session.connectedPeers, with: mode)
+            if messageType == .presence {
+                let now = Date()
+                if lastPresenceLog == nil || now.timeIntervalSince(lastPresenceLog ?? now) > 6 {
+                    lastPresenceLog = now
+                    gtLog("Mesh", "sent presence to \(session.connectedPeers.count) peer(s)")
+                }
+            }
         } catch {
             return
         }
@@ -319,6 +336,10 @@ final class MeshService: NSObject, ObservableObject {
                     lastSeen: presence.ts,
                     source: .mesh
                 )
+                if !loggedPresenceIDs.contains(presence.playerID) {
+                    loggedPresenceIDs.insert(presence.playerID)
+                    gtLog("Mesh", "received presence from \(presence.name)")
+                }
             }
         case MeshMessageType.hit.rawValue:
             break

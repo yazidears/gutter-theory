@@ -127,6 +127,7 @@ struct HomeView: View {
     }
 
     private var lobbyPreview: some View {
+        let onlineCount = max(streetPass.nearbyPlayers.count, streetPass.meshPeerCount)
         GTCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -134,15 +135,21 @@ struct HomeView: View {
                         .gtCaptionFont(10)
                         .foregroundStyle(GTTheme.metal)
                     Spacer()
-                    Text("\(streetPass.nearbyPlayers.count) ONLINE")
+                    Text("\(onlineCount) ONLINE")
                         .gtCaptionFont(10)
                         .foregroundStyle(GTTheme.neonCyan)
                 }
 
                 if streetPass.nearbyPlayers.isEmpty {
-                    Text("No links yet. Start StreetPass to ping your crew.")
-                        .gtCondensedFont(11, weight: .medium)
-                        .foregroundStyle(GTTheme.metal)
+                    if streetPass.meshPeerCount > 0 {
+                        Text("Peers connected. Waiting for presence + location.")
+                            .gtCondensedFont(11, weight: .medium)
+                            .foregroundStyle(GTTheme.metal)
+                    } else {
+                        Text("No links yet. Start StreetPass to ping your crew.")
+                            .gtCondensedFont(11, weight: .medium)
+                            .foregroundStyle(GTTheme.metal)
+                    }
                 } else {
                     ForEach(streetPass.nearbyPlayers.prefix(4)) { player in
                         PlayerRow(player: player)
