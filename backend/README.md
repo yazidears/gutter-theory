@@ -13,6 +13,12 @@ pip install -e .
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Optional (dev autodiscovery via Bonjour):
+
+```bash
+pip install -e .[discovery]
+```
+
 ## Endpoints
 
 - `GET /health`

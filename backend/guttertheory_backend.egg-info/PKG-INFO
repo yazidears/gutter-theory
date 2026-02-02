@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: guttertheory-backend
+Version: 0.1.0
+Summary: Real-time backend for GutterTheory
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn[standard]>=0.27.0
+Requires-Dist: pydantic>=2.6.0
+Requires-Dist: orjson>=3.9.0
+Provides-Extra: prod
+Requires-Dist: uvloop>=0.19.0; extra == "prod"

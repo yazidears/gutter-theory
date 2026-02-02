@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import os
 from typing import Optional
 from uuid import UUID
 
@@ -18,16 +19,32 @@ from .models import (
     ShotPayload,
 )
 from .state import ConnectionManager, LobbyStore
+from .discovery import start_discovery, stop_discovery
 from .utils import bearing_deg, haversine_m, heading_delta
 
 app = FastAPI(title="GutterTheory Backend", version="0.1.0")
 store = LobbyStore()
 manager = ConnectionManager()
+_discovery_handle = None
 
 
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok", "time": datetime.now(timezone.utc).isoformat()}
+
+
+@app.on_event("startup")
+async def on_startup() -> None:
+    global _discovery_handle
+    port = int(os.environ.get("PORT", "8000"))
+    _discovery_handle = start_discovery(port)
+
+
+@app.on_event("shutdown")
+async def on_shutdown() -> None:
+    global _discovery_handle
+    stop_discovery(_discovery_handle)
+    _discovery_handle = None
 
 
 @app.post("/v1/lobbies", response_model=LobbyCreateResponse)
