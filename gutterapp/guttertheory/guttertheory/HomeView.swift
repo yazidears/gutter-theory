@@ -128,7 +128,7 @@ struct HomeView: View {
 
     private var lobbyPreview: some View {
         let onlineCount = max(streetPass.nearbyPlayers.count, streetPass.meshPeerCount)
-        GTCard {
+        return GTCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("CREW FEED")
